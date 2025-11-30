@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Sentence Ninja</title>
+  <style>
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f0f23, #1a1a3a);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 6px 6px;
+      gap: 9px;
+    }
+    h1 { font-size: 2.3em; background: linear-gradient(90deg, #ff8c00, #ff2a6d, #d700ff); -webkit-background-clip: text; color: transparent; }
+    .subtitle { font-size: 0.9em; opacity: 0.9; }
+
+    #progress-select {
+      width: 96%; padding: 7px; font-size: 0.95em; border-radius: 10px; background: #111; color: #ffd700; border: 2px solid #ffd700;
+    }
+
+    #grammar-btn {
+      width: 96%; height: 52px; font-size: 1.55em; border-radius: 14px; background: linear-gradient(45deg, #8a2387, #e94057, #f27121); box-shadow: 0 6px 16px rgba(233,64,87,0.4);
+    }
+
+    #current-grammar {
+      font-size: 1.6em; font-weight: bold; color: #ffd700; min-height: 56px; padding: 0 10px; word-break: break-word; line-height: 1.3;
+    }
+
+    #refresh-all {
+      padding: 7px 22px; font-size: 1.05em; background: #111; border: 2px solid #444; color: #ffd700; border-radius: 30px;
+    }
+
+    .words-container {
+      width: 100%; display: flex; flex-direction: column; gap: 10px; flex-grow: 1;
+    }
+
+    .word-card {
+      width: 100%; background: rgba(17,17,17,0.95); border-radius: 14px; padding: 10px 12px; box-shadow: 0 7px 18px rgba(0,0,0,0.7); border: 2.5px solid #444; position: relative; min-height: 92px;
+    }
+
+    .word-card .label {
+      font-size: 0.9em; opacity: 0.8; color: #ffd700; font-weight: bold; margin-bottom: 3px;
+    }
+
+    .word-card .main-word {
+      font-size: 2.1em; font-weight: bold; margin: 3px 0; min-height: 1.2em;
+    }
+
+    .word-card .pron {
+      font-size: 0.9em; opacity: 0.8; margin: 2px 0;
+    }
+
+    .word-card .meanings {
+      font-size: 0.8em; line-height: 1.45; white-space: pre-line; margin-top: 5px; max-height: 72px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 7px;
+    }
+
+    .copy-btn {
+      position: absolute; top: 6px; right: 6px; padding: 4px 10px; background: #ffd700; color: #000; border: none; border-radius: 30px; font-size: 0.75em; font-weight: bold;
+    }
+
+    .noun-card  { border-color: #00bfff; }
+    .verb-card  { border-color: #ff1744; }
+    .adj-card   { border-color: #00e676; }
+    .adv-card   { border-color: #ff9100; }
+    .place-card { border-color: #9c27b0; }
+
+    footer { font-size: 0.7em; opacity: 0.6; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+  <h1>来造句吧！</h1>
+  <p class="subtitle">新概念1-2册造句神器</p>
+
+  <select id="progress-select">
+    <option value="all">全部（1-2册完整词库）</option>
+  </select>
+
+  <button id="grammar-btn">点击随机抽句型</button>
+  <div id="current-grammar">哈哈哈哈，你先用着，不好用再联系我！</div>
+
+  <div id="refresh-all">点击归零</div>
+
+  <div class="words-container" id="words-container"></div>
+
+  <footer>Made with ❤️ by 微信：lrx-747 · 2025.11.30 更新版</footer>
+
+  <script src="wd.js"></script>
+  <script src="wordsData.js"></script>
+
+  <script>
+    const progressSelect = document.getElementById('progress-select');
+    const grammarBtn = document.getElementById('grammar-btn');
+    const currentGrammar = document.getElementById('current-grammar');
+    const refreshAllBtn = document.getElementById('refresh-all');
+    const wordsContainer = document.getElementById('words-container');
+
+    let currentFilteredData = wordsData;
+
+    // ==================== 进度选择（完全修复版，100%精准） ====================
+    const lessonSet = new Set();
+    wordsData.forEach(item => lessonSet.add(`${item.book.trim()} ${item.lesson.trim()}`));
+
+    const lessonList = Array.from(lessonSet).sort((a, b) => {
+      const bookA = a.includes('1册') ? 1 : 2;
+      const bookB = b.includes('1册') ? 1 : 2;
+      if (bookA !== bookB) return bookA - bookB;
+      const numA = parseInt(a.match(/lesson (\d+)-(\d+)/)[2]); // 用结束课号排序
+      const numB = parseInt(b.match(/lesson (\d+)-(\d+)/)[2]);
+      return numA - numB;
+    });
+
+    lessonList.forEach(lesson => {
+      const opt = document.createElement('option');
+      opt.value = lesson;
+      opt.textContent = `你学到：${lesson}`;
+      progressSelect.appendChild(opt);
+    });
+
+    progressSelect.addEventListener('change', () => {
+      const selected = progressSelect.value.trim();
+      if (selected === 'all') {
+        currentFilteredData = wordsData;
+      } else {
+        const selectedBook = selected.includes('1册') ? '1册' : '2册';
+        const lessonMatch = selected.match(/lesson (\d+)-(\d+)/);
+        const maxEnd = lessonMatch ? parseInt(lessonMatch[2]) : 999;
+
+        currentFilteredData = wordsData.filter(item => {
+          const itemBook = item.book.trim();
+          const itemMatch = item.lesson.trim().match(/lesson (\d+)-(\d+)/);
+          if (!itemMatch) return false;
+          const itemEnd = parseInt(itemMatch[2]);
+
+          if (selectedBook === '1册') {
+            return itemBook === '1册' && itemEnd <= maxEnd;
+          } else {
+            // 选2册 = 包含完整1册 + 2册到maxEnd为止
+            return itemBook === '1册' || (itemBook === '2册' && itemEnd <= maxEnd);
+          }
+        });
+      }
+      generateAllCards();
+    });
+
+    // ==================== 语法按钮 ====================
+    grammarBtn.onclick = () => {
+      const randomGrammar = grammarData[Math.floor(Math.random() * grammarData.length)];
+      currentGrammar.textContent = randomGrammar.word;
+      grammarBtn.textContent = "再来一个！";
+      grammarBtn.style.background = "linear-gradient(45deg, #ffd700, #ff6b00)";
+    };
+
+    // ==================== 五类配置 ====================
+    const types = [
+      {label: '名词类',   colorClass: 'noun-card',  pool: []},
+      {label: '动词',     colorClass: 'verb-card',  pool: []},
+      {label: '形容词',   colorClass: 'adj-card',   pool: []},
+      {label: '副词',     colorClass: 'adv-card',   pool: []},
+      {label: '介词/短语', colorClass: 'place-card', pool: []}
+    ];
+
+    function rebuildPools() {
+      types.forEach(t => t.pool = []);
+      currentFilteredData.forEach(item => {
+        const m = item.meanings;
+        const w = item.word.toLowerCase();
+        if (m.includes('[名]') || m.includes('[代]') || m.includes('[数]') || m.includes('[缩]') || ['he','she','it','i','you','we','they','this','that','someone','mr.','mrs.','sir','hello','hi','yes','no','thanks','please','oh','wow'].includes(w)) types[0].pool.push(item);
+        if (m.includes('[动]') || m.includes('[助动]') || ['is','am','are','was','were','be','do','does','did','have','has','had','can','could','will','would','must','should','may','might'].includes(w)) types[1].pool.push(item);
+        if (m.includes('[形]')) types[2].pool.push(item);
+        if (m.includes('[副]')) types[3].pool.push(item);
+        if (m.includes('[介]') || m.includes('[连]') || m.includes('[短语]') || m.includes('[叹]') || w.includes(' in ') || w.includes(' at ') || w.includes(' with ') || ['thank you','very much','fire extinguisher','oil rig'].some(p => w === p)) types[4].pool.push(item);
+      });
+    }
+
+    function generateAllCards() {
+      rebuildPools();
+      wordsContainer.innerHTML = '';
+      types.forEach(t => {
+        const card = document.createElement('div');
+        card.className = `word-card ${t.colorClass}`;
+        card.innerHTML = `
+          <div class="label">${t.label}</div>
+          <div class="main-word">点击随机</div>
+          <div class="pron"></div>
+          <div class="meanings">点击卡片随机一个单词</div>
+          <button class="copy-btn">复制单词</button>
+        `;
+        card.onclick = (e) => {
+          if (e.target.classList.contains('copy-btn')) return;
+          if (t.pool.length === 0) { card.querySelector('.main-word').textContent = '暂无'; return; }
+          const item = t.pool[Math.floor(Math.random() * t.pool.length)];
+          card.querySelector('.main-word').textContent = item.word;
+          card.querySelector('.pron').textContent = item.pronunciation || '';
+          card.querySelector('.meanings').textContent = item.meanings;
+        };
+        card.querySelector('.copy-btn').onclick = () => {
+          const word = card.querySelector('.main-word').textContent;
+          navigator.clipboard.writeText(word);
+          const btn = card.querySelector('.copy-btn');
+          btn.textContent = '已复制!';
+          btn.style.background = '#00e676';
+          setTimeout(() => { btn.textContent = '复制单词'; btn.style.background = '#ffd700'; }, 1000);
+        };
+        wordsContainer.appendChild(card);
+      });
+    }
+
+    refreshAllBtn.onclick = generateAllCards;
+    generateAllCards();
+  </script>
+</body>
+</html>
