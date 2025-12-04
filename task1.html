@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语跟读练习 - Edge Read Aloud</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 20px; }
+        /* 标题和指南使用 aria-hidden="true" 阻止朗读 */
+        h1[aria-hidden="true"], p.guide[aria-hidden="true"] { color: #005A9E; border-bottom: 2px solid #005A9E; padding-bottom: 10px; }
+        h1 { border-bottom: 2px solid #005A9E; padding-bottom: 10px; }
+        p.guide { color: #D9534F; font-weight: bold; margin-bottom: 20px; }
+        .controls { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background-color: #eaf2ff; border-radius: 8px; }
+        .sentence-block { margin-bottom: 25px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; }
+        .english { font-size: 1.25em; font-weight: bold; color: #333; margin-bottom: 5px; cursor: default; }
+        .chinese { font-size: 1em; color: #666; margin-top: 5px; padding-left: 15px; border-left: 3px solid #00BFFF; }
+        p.english, p.chinese { margin: 0; }
+        button {
+            background-color: #5CB85C;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        button:hover { background-color: #4CAF50; }
+    </style>
+</head>
+<body>
+    <h1 aria-hidden="true">英语跟读与翻译练习</h1>
+
+    <div class="controls">
+        <label for="readingModeSelect">选择朗读模式：</label>
+        <select id="readingModeSelect" onchange="toggleReadingMode()">
+            <option value="english_only">只读英语 (跟读练习)</option>
+            <option value="bilingual">双语朗读 (理解对照)</option>
+        </select>
+        <p id="fullReadGuide" class="guide" aria-hidden="true"></p>
+    </div>
+
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-0')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-0" class="english">He makes me want to know about little things, so that I can teach him.</p>
+            <p id="chinese-0" class="chinese">他让我渴望去了解那些细微的小事，这样我才能教他。</p>
+        </div>
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-1')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-1" class="english">Like when we sit by this lake, I wish I knew what kind of turtle that was, so I could tell him.</p>
+            <p id="chinese-1" class="chinese">就像我们坐在这个湖边时，我希望我知道那是什么品种的乌龟，这样我就可以告诉他。</p>
+        </div>
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-2')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-2" class="english">And I want to figure out what kind of duck that is, so I can tell him all about it the next time we come.</p>
+            <p id="chinese-2" class="chinese">我也想弄清楚那是什么鸭子，这样我们下次再来的时候，我就可以把所有关于它的知识都告诉他。</p>
+        </div>
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-3')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-3" class="english">What do you want most for him?</p>
+            <p id="chinese-3" class="chinese">你对他最大的期望是什么？</p>
+        </div>
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-4')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-4" class="english">Whatever his dreams are, I’m down to ride for him.</p>
+            <p id="chinese-4" class="chinese">无论他有什么梦想，我都愿意为他赴汤蹈火、全力支持。</p>
+        </div>
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-5')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-5" class="english">What’s your biggest fear for him?</p>
+            <p id="chinese-5" class="chinese">你对他最大的恐惧是什么？</p>
+        </div>
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-6')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-6" class="english">That he won’t try.</p>
+            <p id="chinese-6" class="chinese">是害怕他不去尝试。</p>
+        </div>
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-7')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-7" class="english">If he doesn’t try, I’ll be hurt.</p>
+            <p id="chinese-7" class="chinese">如果他不肯努力，我会很难过。</p>
+        </div>
+    
+        <div class="sentence-block">
+            <button onclick="selectText('english-8')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
+                <span aria-hidden="true">朗读此句 (快捷键)</span>
+            </button>
+            <p id="english-8" class="english">Cause then we’ll never know how far he’d get.</p>
+            <p id="chinese-8" class="chinese">因为那样的话，我们就永远不知道他能走多远。</p>
+        </div>
+    
+    
+<script>
+    // 选中指定 ID 元素的全部文本内容，用于单句朗读
+    function selectText(elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const selection = window.getSelection();
+        const range = document.createRange();
+
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        element.style.backgroundColor = '#ffffcc';
+
+        setTimeout(() => {
+             element.style.backgroundColor = '';
+        }, 500);
+    }
+
+    // 切换朗读模式：纯英或双语
+    function toggleReadingMode() {
+        const mode = document.getElementById('readingModeSelect').value;
+        const chineseElements = document.querySelectorAll('.chinese');
+
+        chineseElements.forEach(el => {
+            if (mode === 'english_only') {
+                // 隐藏中文，并用 aria-hidden 防止朗读工具读取
+                el.style.display = 'none';
+                el.setAttribute('aria-hidden', 'true'); 
+            } else {
+                // 显示中文，移除 aria-hidden
+                el.style.display = 'block';
+                el.removeAttribute('aria-hidden');
+            }
+        });
+
+        // 更新全文朗读指南
+        const guide = document.getElementById('fullReadGuide');
+        if (mode === 'english_only') {
+            guide.innerHTML = "当前模式：**纯英语朗读**。请点击页面空白处，然后按下 **Ctrl + Shift + U** 启动全文朗读。";
+        } else {
+            guide.innerHTML = "当前模式：**双语朗读**。请点击页面空白处，然后按下 **Ctrl + Shift + U** 启动全文（包含中文）朗读。";
+        }
+    }
+
+    // 页面加载完成后，设置初始模式为纯英语，确保朗读功能正常
+    window.onload = function() {
+        document.getElementById('readingModeSelect').value = 'english_only';
+        toggleReadingMode(); 
+    };
+</script>
+
+</body>
+</html>
