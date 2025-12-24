@@ -57,12 +57,14 @@
             text-align: center;
             padding: 10px 0;
             box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1); /* 给音频播放器添加柔和的阴影 */
+            z-index: 10;
         }
 
         #audio {
-            width: 80%;
+            width: 90%;
             max-width: 700px;
             border-radius: 10px;
+            margin-bottom: 10px; /* 确保播放器和按钮之间有足够间距 */
         }
 
         /* 计数器按钮样式 */
@@ -94,6 +96,21 @@
             margin-top: 10px;
         }
 
+        /* 手机端样式调整 */
+        @media (max-width: 600px) {
+            #audio {
+                width: 95%; /* 在小屏幕上调整音频播放器宽度 */
+            }
+
+            #counterButton {
+                width: 90%; /* 在小屏幕上让按钮宽度适应屏幕 */
+                font-size: 16px;
+            }
+
+            #counter {
+                font-size: 16px; /* 在小屏幕上调整计数器的字体大小 */
+            }
+        }
     </style>
 </head>
 <body>
