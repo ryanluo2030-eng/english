@@ -1,172 +1,201 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英语跟读练习 - Edge Read Aloud</title>
+    <title>Audio with Subtitles</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 20px; }
-        /* 标题和指南使用 aria-hidden="true" 阻止朗读 */
-        h1[aria-hidden="true"], p.guide[aria-hidden="true"] { color: #005A9E; border-bottom: 2px solid #005A9E; padding-bottom: 10px; }
-        h1 { border-bottom: 2px solid #005A9E; padding-bottom: 10px; }
-        p.guide { color: #D9534F; font-weight: bold; margin-bottom: 20px; }
-        .controls { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background-color: #eaf2ff; border-radius: 8px; }
-        .sentence-block { margin-bottom: 25px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; }
-        .english { font-size: 1.25em; font-weight: bold; color: #333; margin-bottom: 5px; cursor: default; }
-        .chinese { font-size: 1em; color: #666; margin-top: 5px; padding-left: 15px; border-left: 3px solid #00BFFF; }
-        p.english, p.chinese { margin: 0; }
-        button {
-            background-color: #5CB85C;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-bottom: 10px;
-            font-size: 0.9em;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: #F5F5F7; /* 背景颜色 */
+            color: #333;
         }
-        button:hover { background-color: #4CAF50; }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1d1d1f;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #subtitle-container {
+            margin-top: 20px;
+            font-size: 18px;
+            flex-grow: 1;
+            padding-bottom: 100px; /* 留出足够空间给固定的播放器 */
+            overflow-y: auto;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .subtitle {
+            cursor: pointer;
+            padding: 8px;
+            display: inline-block;
+            font-size: 18px;
+            line-height: 1.6;
+            transition: background-color 0.3s ease;
+        }
+
+        .highlight {
+            background-color: rgba(255, 204, 0, 0.3);
+        }
+
+        /* 固定音频播放器和计数器在底部 */
+        #audio-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1); /* 给音频播放器添加柔和的阴影 */
+        }
+
+        #audio {
+            width: 80%;
+            max-width: 700px;
+            border-radius: 10px;
+        }
+
+        /* 计数器按钮样式 */
+        #counterButton {
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #fff;
+            background-color: #007aff; /* 苹果蓝色 */
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 柔和的按钮阴影 */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #counterButton:hover {
+            background-color: #0051a8;
+            transform: translateY(-2px); /* 鼠标悬停效果：轻微上移 */
+        }
+
+        #counterButton:active {
+            transform: translateY(1px); /* 点击时按钮下移 */
+        }
+
+        #counter {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+
     </style>
 </head>
 <body>
-    <h1 aria-hidden="true">英语跟读与翻译练习</h1>
 
-    <div class="controls">
-        <label for="readingModeSelect">选择朗读模式：</label>
-        <select id="readingModeSelect" onchange="toggleReadingMode()">
-            <option value="english_only">只读英语 (跟读练习)</option>
-            <option value="bilingual">双语朗读 (理解对照)</option>
-        </select>
-        <p id="fullReadGuide" class="guide" aria-hidden="true"></p>
+    <h1>加油</h1>
+    <div id="subtitle-container"></div>
+
+    <!-- 音频播放器和计数器放置在固定的容器中 -->
+    <div id="audio-container">
+        <audio id="audio" controls>
+            <source src="your_audio.mp3" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+        <button id="counterButton">0</button> <!-- 初始设置为 0 -->
     </div>
 
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-0')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-0" class="english">He makes me want to know about little things, so that I can teach him.</p>
-            <p id="chinese-0" class="chinese">他让我渴望去了解那些细微的小事，这样我才能教他。</p>
-        </div>
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-1')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-1" class="english">Like when we sit by this lake, I wish I knew what kind of turtle that was, so I could tell him.</p>
-            <p id="chinese-1" class="chinese">就像我们坐在这个湖边时，我希望我知道那是什么品种的乌龟，这样我就可以告诉他。</p>
-        </div>
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-2')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-2" class="english">And I want to figure out what kind of duck that is, so I can tell him all about it the next time we come.</p>
-            <p id="chinese-2" class="chinese">我也想弄清楚那是什么鸭子，这样我们下次再来的时候，我就可以把所有关于它的知识都告诉他。</p>
-        </div>
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-3')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-3" class="english">What do you want most for him?</p>
-            <p id="chinese-3" class="chinese">你对他最大的期望是什么？</p>
-        </div>
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-4')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-4" class="english">Whatever his dreams are, I’m down to ride for him.</p>
-            <p id="chinese-4" class="chinese">无论他有什么梦想，我都愿意为他赴汤蹈火、全力支持。</p>
-        </div>
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-5')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-5" class="english">What’s your biggest fear for him?</p>
-            <p id="chinese-5" class="chinese">你对他最大的恐惧是什么？</p>
-        </div>
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-6')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-6" class="english">That he won’t try.</p>
-            <p id="chinese-6" class="chinese">是害怕他不去尝试。</p>
-        </div>
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-7')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-7" class="english">If he doesn’t try, I’ll be hurt.</p>
-            <p id="chinese-7" class="chinese">如果他不肯努力，我会很难过。</p>
-        </div>
-    
-        <div class="sentence-block">
-            <button onclick="selectText('english-8')" aria-label="朗读此句快捷键" title="点击选中此句，然后按 Ctrl+Shift+U 朗读">
-                <span aria-hidden="true">朗读此句 (快捷键)</span>
-            </button>
-            <p id="english-8" class="english">Cause then we’ll never know how far he’d get.</p>
-            <p id="chinese-8" class="chinese">因为那样的话，我们就永远不知道他能走多远。</p>
-        </div>
-    
-    
-<script>
-    // 选中指定 ID 元素的全部文本内容，用于单句朗读
-    function selectText(elementId) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
+    <script>
+        // 解析SRT字幕文件
+        const subtitleFile = 'your_subtitle.srt'; // 字幕文件路径
+        let subtitles = [];
 
-        const selection = window.getSelection();
-        const range = document.createRange();
+        fetch(subtitleFile)
+            .then(response => response.text())
+            .then(text => {
+                subtitles = parseSRT(text);
+                displaySubtitles(subtitles);
+            });
 
-        range.selectNodeContents(element);
-        selection.removeAllRanges();
-        selection.addRange(range);
-
-        element.style.backgroundColor = '#ffffcc';
-
-        setTimeout(() => {
-             element.style.backgroundColor = '';
-        }, 500);
-    }
-
-    // 切换朗读模式：纯英或双语
-    function toggleReadingMode() {
-        const mode = document.getElementById('readingModeSelect').value;
-        const chineseElements = document.querySelectorAll('.chinese');
-
-        chineseElements.forEach(el => {
-            if (mode === 'english_only') {
-                // 隐藏中文，并用 aria-hidden 防止朗读工具读取
-                el.style.display = 'none';
-                el.setAttribute('aria-hidden', 'true'); 
-            } else {
-                // 显示中文，移除 aria-hidden
-                el.style.display = 'block';
-                el.removeAttribute('aria-hidden');
+        // 解析SRT文件
+        function parseSRT(data) {
+            const regex = /(\d+)\s+([\d:,]+) --> ([\d:,]+)\s+(.+)/g;
+            let result = [];
+            let match;
+            while ((match = regex.exec(data)) !== null) {
+                const startTime = convertSRTTimeToSeconds(match[2]);
+                const endTime = convertSRTTimeToSeconds(match[3]);
+                const text = match[4].split(' '); // 分割成单词
+                result.push({ startTime, endTime, text });
             }
+            return result;
+        }
+
+        // SRT时间转换为秒
+        function convertSRTTimeToSeconds(time) {
+            const [hours, minutes, seconds] = time.split(':');
+            const [sec, milli] = seconds.split(',');
+            return parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(sec) + parseInt(milli) / 1000;
+        }
+
+        // 显示字幕
+        function displaySubtitles(subtitles) {
+            const container = document.getElementById('subtitle-container');
+            subtitles.forEach((subtitle, index) => {
+                const span = document.createElement('span');
+                span.classList.add('subtitle');
+                span.dataset.start = subtitle.startTime;
+                span.dataset.end = subtitle.endTime;
+                span.innerText = subtitle.text.join(' ');
+                span.onclick = () => seekTo(subtitle.startTime);
+                container.appendChild(span);
+                container.appendChild(document.createElement('br'));
+            });
+        }
+
+        // 跳转到某个时间点
+        function seekTo(time) {
+            const audio = document.getElementById('audio');
+            audio.currentTime = time;
+        }
+
+        // 高亮正在播放的字幕
+        const audio = document.getElementById('audio');
+        audio.addEventListener('timeupdate', () => {
+            const currentTime = audio.currentTime;
+            let currentSubtitle = null;
+            subtitles.forEach(subtitle => {
+                if (currentTime >= subtitle.startTime && currentTime <= subtitle.endTime) {
+                    currentSubtitle = subtitle;
+                }
+            });
+
+            // 高亮当前字幕
+            const allSubtitles = document.querySelectorAll('.subtitle');
+            allSubtitles.forEach(sub => {
+                if (sub.dataset.start == currentSubtitle?.startTime) {
+                    sub.classList.add('highlight');
+                } else {
+                    sub.classList.remove('highlight');
+                }
+            });
         });
 
-        // 更新全文朗读指南
-        const guide = document.getElementById('fullReadGuide');
-        if (mode === 'english_only') {
-            guide.innerHTML = "当前模式：**纯英语朗读**。请点击页面空白处，然后按下 **Ctrl + Shift + U** 启动全文朗读。";
-        } else {
-            guide.innerHTML = "当前模式：**双语朗读**。请点击页面空白处，然后按下 **Ctrl + Shift + U** 启动全文（包含中文）朗读。";
-        }
-    }
+        // 计数器功能
+        const counterButton = document.getElementById('counterButton');
+        let counter = 0;
 
-    // 页面加载完成后，设置初始模式为纯英语，确保朗读功能正常
-    window.onload = function() {
-        document.getElementById('readingModeSelect').value = 'english_only';
-        toggleReadingMode(); 
-    };
-</script>
+        counterButton.addEventListener('click', () => {
+            counter += 1; // 每次点击加 1
+            counterButton.textContent = counter; // 更新按钮显示
+        });
+
+    </script>
 
 </body>
 </html>
